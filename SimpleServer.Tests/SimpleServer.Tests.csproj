@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+
+    <RootNamespace>SimpleServer.Tests</RootNamespace>
+
+    <AssemblyName>SimpleServer.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="nunit" Version="3.11.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.11.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SimpleServer.Client\SimpleServer.Client.csproj" />
+    <ProjectReference Include="..\SimpleServer.Common\SimpleServer.Common.csproj" />
+    <ProjectReference Include="..\SimpleServer.Server\SimpleServer.Server.csproj" />
+  </ItemGroup>
+
+</Project>
