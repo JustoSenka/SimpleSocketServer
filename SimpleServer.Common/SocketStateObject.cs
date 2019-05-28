@@ -7,7 +7,7 @@ namespace SimpleServer.Common
     {
         public const int BufferSize = 1024;
 
-        public string Name;
+        public string Name = "";
 
         public Socket Socket = null;
         public byte[] Buffer = new byte[BufferSize];

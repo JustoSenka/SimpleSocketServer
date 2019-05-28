@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace SimpleServer.Server
 {
-    public class SimpleSocketServer : SimpleSocketBase, IDisposable
+    public class SimpleSocketServer : SimpleSocketBase, ISimpleSocketServer, IDisposable
     {
-        public static int s_Port = 11000;
+        public const int s_DefaultPort = 11000;
 
         private Socket m_ListeningSocket;
         private Dictionary<string, SocketStateObject> m_ConnectedSockets = new Dictionary<string, SocketStateObject>();
@@ -23,13 +23,14 @@ namespace SimpleServer.Server
             Name = "Server";
         }
 
-        public async Task<bool> StartListening()
+        public async Task<bool> StartListening() => await StartListening(s_DefaultPort);
+        public async Task<bool> StartListening(int port)
         {
             return await Task.Run(async () =>
             {
                 IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
                 IPAddress ipAddress = ipHostInfo.AddressList[0];
-                IPEndPoint localEndPoint = new IPEndPoint(ipAddress, s_Port);
+                IPEndPoint localEndPoint = new IPEndPoint(ipAddress, port);
 
                 m_ListeningSocket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
@@ -84,17 +85,18 @@ namespace SimpleServer.Server
             }).Start();
         }
 
-        public async Task<bool> Send(string name, string msg)
+        public async Task<bool> Send(string clientName, string msg)
         {
             var tcs = new TaskCompletionSource<bool>();
 
-            if (m_ConnectedSockets.ContainsKey(name))
+            if (m_ConnectedSockets.ContainsKey(clientName))
             {
-                await Send(m_ConnectedSockets[name], msg);
+                var result = await Send(m_ConnectedSockets[clientName], msg);
+                tcs.SetResult(result);
             }
             else
             {
-                Console.WriteLine($"[{Name}][Error] Client with name '{name}' is not connected.");
+                Console.WriteLine($"[{Name}][Error] Client with name '{clientName}' is not connected.");
                 tcs.SetResult(false);
             }
 

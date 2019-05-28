@@ -34,10 +34,10 @@ namespace SimpleServer.Common
                             if (string.IsNullOrEmpty(m))
                                 continue; // since <EOF> is at the end of string, so one split will always be empty
 
-                            Console.WriteLine($"[{socketState.Name}] {socketState.Name} <- {m}");
+                            Console.WriteLine($"[{Name}] {socketState.Name} <- {m}");
 
-                            socketState.LastMessage = content.Replace("<EOF>", "");
-                            MessageReceived?.Invoke(socketState.Name, socketState.LastMessage);
+                            socketState.LastMessage = m;
+                            MessageReceived?.Invoke(socketState.Name, m);
                             socketState.sb.Clear();
                             didReceiveFullMessage = true;
                             // TODO: Last element might not had <EOF> but we still considered it as full message. Append it again back to string builder and ignore in callbacks
@@ -54,15 +54,15 @@ namespace SimpleServer.Common
             });
         }
 
-        public virtual async Task<bool> Send(SocketStateObject socketState, string msg)
+        protected virtual async Task<bool> Send(SocketStateObject socketState, string msg)
         {
             var tcs = new TaskCompletionSource<bool>();
             var bytes = Encoding.UTF8.GetBytes(msg + "<EOF>");
 
             try
             {
-                socketState.Socket.BeginSend(bytes, 0, bytes.Length, 0, new AsyncCallback(SendCallback), (tcs, socketState));
                 Console.WriteLine($"[{Name}] {socketState.Name} -> {msg}");
+                socketState.Socket.BeginSend(bytes, 0, bytes.Length, 0, new AsyncCallback(SendCallback), (tcs, socketState));
             }
             catch (Exception e)
             {

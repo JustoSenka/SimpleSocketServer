@@ -7,12 +7,14 @@ using System.Threading.Tasks;
 
 namespace SimpleServer.Client
 {
-    public class SimpleSocketClient : SimpleSocketBase, IDisposable
+    public class SimpleSocketClient : SimpleSocketBase, ISimpleSocketClient, IDisposable
     {
-        public static int s_Port = 11000;
-        public static string s_Host = "10.45.33.184";
+        public const int s_DefaultPort = 11000;
+        public const string s_DefaultHost = "127.0.0.1";
 
         private SocketStateObject m_ClientState = new SocketStateObject();
+
+        public bool IsConnected => m_ClientState.Socket.Connected;
 
         public SimpleSocketClient(string name)
         {
@@ -20,27 +22,31 @@ namespace SimpleServer.Client
             Name = name;
         }
 
-        public void Connect()
+        public async Task<bool> Connect() => await Connect(s_DefaultPort, s_DefaultHost);
+        public async Task<bool> Connect(int port, string host)
         {
             try
             {
-                IPHostEntry ipHostInfo = Dns.GetHostEntry(s_Host);
+                IPHostEntry ipHostInfo = Dns.GetHostEntry(host);
                 IPAddress ipAddress = ipHostInfo.AddressList[0];
-                IPEndPoint remoteEP = new IPEndPoint(ipAddress, s_Port);
+                IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
                 var socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
                 m_ClientState.Socket = socket;
                 m_ClientState.Socket.Connect(remoteEP);
 
-                Console.WriteLine($"[{Name}] {0} connected so server at: {1}", m_ClientState.Name, socket.RemoteEndPoint.ToString());
+                Console.WriteLine($"[{Name}] {m_ClientState.Name} connected to server at: {socket.RemoteEndPoint.ToString()}");
 
-                Send(m_ClientState.Name).Wait();
+                await Send(m_ClientState.Name);
                 StartReceivingThread(m_ClientState);
+
+                return m_ClientState.Socket.Connected;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                return false;
             }
         }
 
